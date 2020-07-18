@@ -1,0 +1,161 @@
+﻿@using MovieStore.Models
+@model IEnumerable<MovieStore.Models.Rental>
+@{
+    ViewBag.Title = "RentedMovies";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Return Requests</h2>
+
+<table id="RentedMovies" class="table table-bordered table-hover">
+    <thead>
+        <tr>
+            <th>Movie</th>
+            <th>Customer</th>
+            <th>Date Rented</th>
+            <th style="text-align:center">Ask for return</th>
+        </tr>
+    </thead>
+    <tbody>
+            @foreach (var item in Model.Where(m => m.DateRented != null))
+            {
+                <tr>
+                    <td>@item.Movie.Name</td>
+                    <td>@item.Customer.Name</td>
+                    <td> @item.DateRented.Value.ToShortDateString()</td>
+                    <td class="test">
+                        @if (item.AskedReturn != true)
+                        {
+                            <button class="btn btn-secondary js-ask" style="float:right" data-content-id="@item.Id">Ask for return</button>
+                        }
+                        else
+                        {
+                            <span class="text-success" style="float:left">Request sent <time class="timeago" datetime="@item.AskedReturnDate" title="@item.AskedReturnDate">@item.AskedReturnDate</time></span>
+                            <button class="btn btn-danger js-cancel" style="float:right" data-content-id="@item.Id">Cancel Request</button>
+                        }
+                    </td>
+                </tr>
+            }
+    </tbody>
+</table>
+
+<h2>Rent Requests</h2>
+
+<table id="Requests" class="table table-bordered table-hover">
+    <thead>
+        <tr>
+            <th>Movie</th>
+            <th>Customer</th>
+            <th style="text-align:center">Ask for Rent</th>
+        </tr>
+    </thead>
+    <tbody>
+            @foreach (var item in Model.Where(m => m.DateRented == null && m.AskedRented == true))
+            {
+                <tr>
+                    <td>@item.Movie.Name</td>
+                    <td>@item.Customer.Name</td>
+                    <td class="test">
+                        
+                            <span class="text-success" style="float:left">Request sent <time class="timeago" datetime="@item.AskedRentedDate" title="@item.AskedRentedDate">@item.AskedRentedDate</time></span>
+                            <button class="btn btn-danger js-cancel" style="float:right" data-content-id="@item.Id">Cancel Request</button>
+                    </td>
+                </tr>
+            }
+    </tbody>
+</table>
+
+@section Scripts{
+
+    <script>
+        $(document).ready(function () {
+            var table = $("#RentedMovies").DataTable({
+                "lengthMenu": [[10, 15, 20, -1], [10, 15, 20, "All"]]
+            });
+
+            var RequestsTable = $("#Requests").DataTable({
+                "lengthMenu": [[10, 15, 20, -1], [10, 15, 20, "All"]]
+            });
+
+
+            /////////////////// Send return request///////////////////
+            $("#RentedMovies").on("click", ".js-ask", function () {
+                var button = $(this);
+                var test = button.parent("td");
+                console.log("non");
+                bootbox.confirm("Are you sure you want to Ask for return this movie?", function (result) {
+                    if (result) {
+                        $.ajax({
+                            url: "../Rentals/AskedReturn/" + button.attr("data-content-id"),
+                            success: function () {
+
+                                //$(".test").load(location.href + " .test");
+                                test.empty();
+                                test.append("<span class='text-success' style='float:left'>Request sent just now</span > <button class='btn btn-danger js-cancel' style='float:right' data-content-id='"+button.attr('data-content-id')+"'>Cancel Request</button>")
+                                //location.reload()
+
+                                toastr.success("Request send suuccessfuly, Your request will excute at less than 24 hours.");
+                            },
+                            error: function () {
+                                toastr.error("Something unexpecting happened, Please try again later.");
+                            }
+                        });
+                    }
+                });
+            });
+            
+            
+            ///////////////////Cancel Return Request/////////////////////
+            $("#RentedMovies").on("click", ".js-cancel", function () {
+                var button = $(this);
+                var test = button.parent("td");
+                console.log("non");
+                bootbox.confirm("Are you sure you want to Cancel return request for this movie?", function (result) {
+                    if (result) {
+                        $.ajax({
+                            url: "../Rentals/CancelAskedReturnRequest/" + button.attr("data-content-id"),
+                            success: function () {
+
+                                test.empty();
+                                test.append("<button class='btn btn-secondary js-ask' style='float:right' data-content-id='"+button.attr('data-content-id')+"'>Ask for return</button>")
+                                //location.reload()
+
+                                toastr.success("Request has been Cancelled.");
+                            },
+                            error: function () {
+                                toastr.error("Something unexpecting happened, Please try again later.");
+                            }
+                        });
+                    }
+                });
+            });
+
+            ///////////////////Cancel Return Request/////////////////////
+            $("#Requests").on("click", ".js-cancel", function () {
+                var button = $(this);
+                var test = button.parent("td");
+                console.log("non");
+                bootbox.confirm("Are you sure you want to Cancel Rent request for this movie?", function (result) {
+                    if (result) {
+                        $.ajax({
+                            url: "../Rentals/CancelRentRequest/" + button.attr("data-content-id"),
+                            success: function () {
+
+                                RequestsTable.row(button.parent("td").parent("tr")).remove().draw();
+
+                                toastr.success("Request has been Cancelled.");
+                            },
+                            error: function () {
+                                toastr.error("Something unexpecting happened, Please try again later.");
+                            }
+                        });
+                    }
+                });
+            });
+
+
+
+            jQuery("time.timeago").timeago();
+        });
+    </script>
+}

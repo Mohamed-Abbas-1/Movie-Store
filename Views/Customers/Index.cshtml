@@ -1,0 +1,128 @@
+﻿@model IEnumerable<MovieStore.Models.Customer>
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Customers</h2>
+@Html.ActionLink("New Customer", "New", "Customers", null, new { @class = "btn btn-primary", @style = "margin-bottom:10px;" })
+
+
+<table class="table table-hover table-bordered" id="customers">
+    <thead>
+        <tr>
+            <th>Customer</th>
+            <th>Address/Phone</th>
+            <th>Membership Type</th>
+        </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+
+
+@section scripts
+    {
+
+    <script>
+
+        //// API
+        $(document).ready(function () {
+
+            var table = $("#customers").DataTable({
+                "lengthMenu": [[5, 10, 20, -1], [5, 10, 20, "All"]],
+                ajax: {
+                    url: "../api/customers",
+                    dataSrc: ""
+                },
+                columns: [
+                    {
+                        data: "name",
+                        render: function (data, type, customer) {
+                            return "<a href='../customers/edit/" + customer.id + "'>" + customer.name + "</a>";
+                        }
+                    },
+                    {
+                        data: "addressOrPhone"
+                    },
+                    {
+                        data: "membershipType.name",
+                        render: function (data, type, customer) {
+                            return data + "<button class='btn btn-danger js-delete' style= 'float:right' data-content-id='" + customer.id + "'>Delete</button>";
+                        }
+                    },
+
+                ]
+            });
+
+            $("#customers").on("click", ".js-delete", function () {
+                var button = $(this);
+                console.log("non");
+                bootbox.confirm("Are you sure you want to delete this customer?", function (result) {
+                    if (result) {
+                        $.ajax({
+                            url: "../api/customers/" + button.attr("data-content-id"),
+                            method: "DELETE",
+                            success: function () {
+                                // $("#customers").load(location.href + " #customers");
+                                table.row(button.parent("td").parent("tr")).remove().draw();
+
+                                bootbox.alert({
+                                    message: "Successful Removed this customer",
+                                    className: 'rubberBand animated',
+                                    size: 'small',
+                                    backdrop: true
+                                });
+                            },
+                            error: function (xhr, httpStatusMessage, customErrorMessage) {
+                                if (xhr.status === 400) {
+                                    toastr.error("Cannot delete this customer, this customer have one or more movie didn't returned yet!");
+                                    
+                                }
+                                if (xhr.status === 404) {
+                                    toastr.error("Cannot found this customer!");
+                                    
+                                }
+                            }
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+
+    @*<script>
+            ///// MVC
+            $(document).ready(function () {
+                $("#customers").on("click", ".js-deleteMVC", function () {
+                    var button = $(this);
+                    Swal.fire({
+                        title: 'Are you sure you want to delete this customer?',
+                        text: "You won't be able to revert this!",
+                        type: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Yes, delete it!'
+                    }).then((result) => {
+                        if (result.value) {
+                            $.ajax({
+                                url: "../customers/Delete/" + button.attr("data-content-id"),
+                                success: function () {
+                                    // $("#customers").load(location.href + " #customers");
+
+                                    button.parent("td").parent("tr").remove();
+                                    Swal.fire(
+                                        'Successful Removed this customer',
+                                        '',
+                                        'success'
+                                    );
+                                }
+                            });
+                        }
+
+                    });
+                });
+            });
+        </script>*@
+}

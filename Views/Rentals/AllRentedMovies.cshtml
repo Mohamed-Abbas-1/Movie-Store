@@ -1,0 +1,99 @@
+﻿@model MovieStore.ViewModels.RentedMoviesViewModel
+@{
+    ViewBag.Title = "AllRentedMovies";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Returned Movies</h2>
+
+<table id="ReturnedMovies" class="table table-bordered table-hover">
+    <thead>
+        <tr>
+            <th>Movie</th>
+            <th>Customer</th>
+            <th>Date Rented</th>
+            <th>Date returned</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.ReturnedMovies)
+        {
+            <tr>
+                <td>@item.Movie.Name</td>
+                <td>@item.Customer.Name</td>
+                <td>@item.DateRented.ToShortDateString()</td>
+                @if (item.DateReturned != null)
+                {
+                    <td>
+                        @item.DateReturned.Value.ToShortDateString()
+
+                        @Html.ActionLink("Edit", "EditRental", "Rentals", new { id = item.Id }, new { @class = "btn btn-primary", @style = "float:right" })
+                    </td>
+                }
+                else
+                {
+                    <td>
+                        Didn't Returned Yet!
+                        @Html.ActionLink("Edit", "EditRental", "Rentals", new { id = item.Id }, new { @class = "btn btn-primary", @style = "margin-left:15px" })
+                    </td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h2>RentedMovies</h2>
+
+<table id="AllRentedMovies" class="table table-bordered table-hover">
+    <thead>
+        <tr>
+            <th>Movie</th>
+            <th>Customer</th>
+            <th>Date Rented</th>
+            <th>Date returned</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.RentedMovies)
+        {
+            <tr>
+                <td>@item.Movie.Name</td>
+                <td>@item.Customer.Name</td>
+                <td>@item.DateRented.ToShortDateString()</td>
+                @if (item.DateReturned != null)
+                {
+                    <td>
+                        @item.DateReturned.Value.ToShortDateString()
+
+                        @Html.ActionLink("Edit", "EditRental", "Rentals", new { id = item.Id }, new { @class = "btn btn-primary", @style = "float:right" })
+                    </td>
+                }
+                else
+                {
+                    <td>
+                        Didn't Returned Yet!
+                        @Html.ActionLink("Edit", "EditRental", "Rentals", new { id = item.Id }, new { @class = "btn btn-primary", @style = "float:right" })
+                    </td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>
+
+@section scripts
+   {
+
+    <script>
+
+        $(document).ready(function () {
+
+            $("#ReturnedMovies").DataTable({
+                "lengthMenu": [[5, 10, 20, -1], [5, 10, 20, "All"]]
+            });
+
+             $("#AllRentedMovies").DataTable({
+                "lengthMenu": [[5, 10, 20, -1], [5, 10, 20, "All"]]
+                });
+            });
+                </script>
+    }

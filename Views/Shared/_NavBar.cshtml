@@ -1,0 +1,34 @@
+﻿@using MovieStore.Models
+<div class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            @Html.ActionLink("MovieStore", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
+        </div>
+        <div class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+                <li>@Html.ActionLink("New Rental", "New", "Rentals")</li>
+                @if (User.IsInRole(RoleName.CanManageMovies))
+                {
+                    <li>@Html.ActionLink("Requests", "Requests", "Rentals")</li>
+                }
+                <li>@Html.ActionLink("Rented Movies", "RentedMovies", "Rentals")</li>
+                @if (User.IsInRole(RoleName.CanManageMovies))
+                {
+                    <li>@Html.ActionLink("All Rented List", "AllRentedList", "Rentals")</li>
+                }
+                <li>@Html.ActionLink("Customers", "Index", "Customers")</li>
+                <li>@Html.ActionLink("Movies", "Index", "Movies")</li>
+                @if (User.IsInRole(RoleName.CanManageMovies))
+                {
+                    <li>@Html.ActionLink("Users", "AllUsers", "Users")</li>
+                }
+            </ul>
+            @Html.Partial("_LoginPartial")
+        </div>
+    </div>
+</div>

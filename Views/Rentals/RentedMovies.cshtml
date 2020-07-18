@@ -1,0 +1,86 @@
+﻿@model IEnumerable<MovieStore.Models.Rental>
+@{
+    ViewBag.Title = "RentedMovies";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Rented Movies</h2>
+
+<table id="RentedMovies" class="table table-bordered table-hover">
+    <thead>
+        <tr>
+            <th>Movie</th>
+            <th>User</th>
+            <th>Customer</th>
+            <th>Date Rented</th>
+            <th>Returned Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Where(m => m.AskedReturn != true && m.DateRented != null))
+        {
+            <tr>
+                <td>@item.Movie.Name</td>
+                @if (item.Customer.ApplicationUser.Roles.Any())
+                {
+                    <td>Admin</td>
+                }
+                else
+                {
+                    <td>@item.Customer.ApplicationUser.UserName</td>
+                }
+                <td>@item.Customer.Name</td>
+                <td>@item.DateRented.Value.ToShortDateString()</td>
+
+
+                <td>
+                    <input class="form-control js-value" type="text" value="Didn't returned Yet!" />
+
+                    <button class="btn btn-secondary js-change" style="margin-left:15px" data-content-id="@item.Id">Set Date returned</button>
+                </td>
+
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+@section Scripts{
+
+    <script>
+        $(document).ready(function () {
+
+
+            var table = $("#RentedMovies").DataTable({
+                "lengthMenu": [[10, 15, 20, -1], [10, 15, 20, "All"]]
+            });
+
+
+            ////////////////////Rented Table///////////
+            $("#RentedMovies").on("click", ".js-change", function () {
+                var button = $(this);
+                var input = $(this).siblings(".js-value");
+                console.log("non");
+                bootbox.confirm("Are you sure you want to Change this movie Date Returned To " + input.val() + " ?", function (result) {
+                    if (result) {
+                        $.ajax({
+                            url: "../Rentals/ChangeDateReturned/" + button.attr("data-content-id") + "?dateReturned=" + input.val(),
+                            success: function () {
+
+                                table.row(button.parent("td").parent("tr")).remove().draw();
+                                toastr.success("Successful Changed this movie Date Returned");
+                            },
+                            error: function () {
+                                toastr.error("Something unexpecting happened, Please make sure that you insert the date successfully .");
+                            }
+                        });
+                    }
+                });
+            });
+
+
+
+            jQuery("time.timeago").timeago();
+        });
+    </script>
+}

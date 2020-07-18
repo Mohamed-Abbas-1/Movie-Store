@@ -1,0 +1,104 @@
+﻿@model IEnumerable<MovieStore.Models.Rental>
+@{
+    ViewBag.Title = "AllRentedList";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>All Rented List</h2>
+
+<table id="RentedMovies" class="table table-bordered table-hover">
+    <thead>
+        <tr>
+            <th>Movie</th>
+            <th>User</th>
+            <th>Customer</th>
+            <th>Date Rented</th>
+            <th>Date Returned</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+        <tr>
+            <td>@item.Movie.Name</td>
+            @if (item.Customer.ApplicationUser.Roles.Any())
+            {
+                <td>Admin</td>
+            }
+            else
+            {
+                <td>@item.Customer.ApplicationUser.UserName</td>
+            }
+            <td>@item.Customer.Name</td>
+            @if (item.DateRented == null && item.AskedRented == true)
+            {
+                <td class="text-success">Waiting for accept rent request</td>
+            }
+            else if (item.DateRented == null && item.AskedRented != true)
+            {
+                <td class="text-danger">Canceled Rent operation!</td>
+            }
+            else
+            {
+                <td> @item.DateRented.Value.ToShortDateString()</td>
+            }
+            @if (item.DateRented == null && item.AskedRented == true)
+            {
+                <td class="text-success">Waiting for accept rent request</td>
+            }
+            else if (item.DateRented == null && item.AskedRented != true)
+            {
+                <td class="text-danger">Canceled Rent operation!</td>
+            }
+            else if (item.DateReturned == null && item.AskedReturn == true)
+            {
+                <td class="text-success">Waiting for accept return request</td>
+            }
+            else if (item.DateReturned == null)
+            {
+                <td>Didn't Returned yet!</td>
+            }
+            else
+            {
+                <td>@item.DateReturned.Value.ToShortDateString()</td>
+            }
+            <td>
+                <button class="btn btn-danger js-delete" data-content-id="@item.Id">Delete Rent</button>
+            </td>
+        </tr>
+        }
+    </tbody>
+</table>
+
+@section Scripts{
+
+    <script>
+        $(document).ready(function () {
+            var table = $("#RentedMovies").DataTable({
+                "lengthMenu": [[10, 15, 20, -1], [10, 15, 20, "All"]]
+            });
+
+            $("#RentedMovies").on("click", ".js-delete", function () {
+                var button = $(this);
+                console.log("non");
+                bootbox.confirm("Are you sure you want to Delete This rent?", function (result) {
+                    if (result) {
+                        $.ajax({
+                            url: "../Rentals/Delete/" + button.attr("data-content-id"),
+                            success: function () {
+
+                                table.row(button.parent("td").parent("tr")).remove().draw();
+                                toastr.success("Successful Delete this rent!");
+                            },
+                            error: function () {
+                                toastr.error("Something unexpecting happened, Please make sure that you insert the date successfully .");
+                            }
+                        });
+                    }
+                });
+            });
+
+        });
+    </script>
+}

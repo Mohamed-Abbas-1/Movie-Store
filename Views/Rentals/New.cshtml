@@ -1,0 +1,163 @@
+﻿
+@{
+    ViewBag.Title = "New Rental Form";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>New Rental Form</h2>
+
+<form id="newRentals">
+    <div class="form-group">
+        <label>Customer</label>
+        <div class="tt-container">
+            <input id="customer" name="customer" type="text" value="" class="form-control" data-rule-validCustomer="true" required />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Movie</label>
+        <div class="tt-container">
+            <input id="movie" name="movie" type="text" value="" class="form-control" data-rule-atLeastOneMovie="true" />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4 col-sm-4">
+            <ul id="movies" class="list-group"></ul>
+        </div>
+    </div>
+    <button class="btn btn-primary">Submit</button>
+</form>
+
+@section Scripts{
+
+    @Scripts.Render("~/bundles/jqueryval")
+    <script>
+        $(document).ready(function () {
+            // AutoComplete using Twitter.Typeahed plugin created by twitter developer team.
+            /////////// Start Autocomplete on customer input./////////////////
+            var vm = {
+                movieIds: []
+            };
+            var customers = new Bloodhound({
+                datumTokenizer: Bloodhound.tokenizers.obj.whitespace('name'),
+                queryTokenizer: Bloodhound.tokenizers.whitespace,
+                remote: {
+                    url: '../api/customers?query=%QUERY',
+                    wildcard: '%QUERY'
+                }
+            });
+
+            $('#customer').typeahead({
+                minLength: 3,
+                highlight: true
+            }, {
+                name: 'customers',
+                display: 'name',
+                source: customers
+            }).on("typeahead:select", function (e, customer) {
+                vm.CustomerId = customer.id;
+            });
+            ////////// End of Autocomplete on customer input.////////////////
+
+            /////////// Start of Autocomplete on movie input.////////////////
+            var movies = new Bloodhound({
+                datumTokenizer: Bloodhound.tokenizers.obj.whitespace('name'),
+                queryTokenizer: Bloodhound.tokenizers.whitespace,
+                remote: {
+                    url: '../api/movies?query=%QUERY',
+                    wildcard: '%QUERY'
+                }
+            });
+
+            $('#movie').typeahead({
+                minLength: 1,
+                highlight: true
+            }, {
+                name: 'movies',
+                display: 'name',
+                source: movies
+            }).on("typeahead:select", function (e, movie) {
+                $("#movies").append("<li class='list-group-item'>" + movie.name + "</li>");
+
+                $("#movie").typeahead("val", "");
+
+                vm.movieIds.push(movie.id);
+            });
+            /////////// End of Autocomplete on movie input.////////////////
+
+            ////////////// Custom validator for select customer////////////
+            $.validator.addMethod("validCustomer", function () {
+                return vm.CustomerId && vm.CustomerId !== 0;
+            }, "Please Select a valid Customer.");
+
+            ////////////// Custom validator for select Movies////////////
+            $.validator.addMethod("atLeastOneMovie", function () {
+                return vm.movieIds.length > 0;
+            }, "Please Select at least one movie.");
+
+            //////// start of submit the form ////////////
+
+         var validator = $("#newRentals").validate({
+                submitHandler: function (e) {
+                   ////  e.preventDefault(); ////// using prevertDefault to prevert the form from submit normaly.
+                 bootbox.confirm("Are you sure you want to Rent this movies?", function (result) {
+                     if (result) {
+                         $.ajax({
+                             url: "../api/newRentals",
+                             method: "post",
+                             data: vm
+                         })
+                    
+                    .done(function () {
+                        toastr.success("Rentals successfully records, You will recive your order at less than 24 hours.");
+                        //$("#customer").val("");
+                        //$("#movies").children("li").remove();
+
+                        $("#customer").typeahead("val", "");  // clear customer input
+                        $("#movie").typeahead("val", "");   // clear movie input
+                        $("#movies").empty();    // empty the list of movies selected
+
+                        vm = { movieIds: [] };  // clear the id's of movie selected.
+                        validator.resetForm();
+                    })
+                    .fail(function () {
+                        toastr.error("Something unexpecting happened, Please make sure you don't select the same movie twice or more.");
+                    });
+                          }
+                 })
+
+                    return false;   ///// using to prevert the form from submit normaly.
+                }
+            }); 
+
+            //$("#newRentals").submit(function (e) {
+            //   e.preventDefault(); ////// using prevertDefault to prevert the form from submit tradationaly.
+            //});
+
+
+            //            $("#user").keyup(function () {
+            //    var input = $("#user").val();
+            //    console.log("non");
+            //    $.ajax({
+            //        url: "../Users/GetUsers?query=" + input,
+            //        method: "POST",
+            //        contentType: "application/json;charset=utf-8",
+            //        success: function (data) {
+            //            $("#user").append("<div class='tt-menu' style='position: absolute; top: 100%; left: 0px; z-index: 100; display: none;'><div class='tt-dataset tt-dataset-customers'><div class='tt-suggestion tt-selectable'><strong class='tt-highlight'>Mickel Jack2</strong></div></div></div>");
+            //            <div class='tt-menu' style='position: absolute; top: 100%; left: 0px; z-index: 100; display: none;'><div class='tt-dataset tt-dataset-customers'><div class='tt-suggestion tt-selectable'><strong class='tt-highlight'>Mickel Jack2</strong></div></div></div>
+            //            for (var i = 0; i < data.length; i++) {
+            //                alert(data.users.Id);
+            //            }
+                        
+            //        }
+
+            //    });
+
+            //});
+
+
+
+        });
+    </script>
+   
+}

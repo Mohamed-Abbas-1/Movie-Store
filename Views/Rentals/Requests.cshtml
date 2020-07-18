@@ -1,0 +1,137 @@
+﻿@model IEnumerable<MovieStore.Models.Rental>
+@{
+    ViewBag.Title = "RentedMovies";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Requstes for return Movies</h2>
+
+<table id="RequestedRentedMovies" class="table table-bordered table-hover">
+    <thead>
+        <tr>
+            <th>Movie</th>
+            <th>User</th>
+            <th>Customer</th>
+            <th>Date Rented</th>
+            <th>Request for Return Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Where(m => m.AskedReturn == true))
+        {
+            <tr>
+                <td>@item.Movie.Name</td>
+                @if (item.Customer.ApplicationUser.Roles.Any())
+                {
+                    <td>Admin</td>
+                }
+                else
+                {
+                    <td>@item.Customer.ApplicationUser.UserName</td>
+                }
+                <td>@item.Customer.Name</td>
+                <td>@item.DateRented.Value.ToShortDateString()</td>
+
+                <td>
+                    <time class="timeago" datetime="@item.AskedReturnDate" title="@item.AskedReturnDate">@item.AskedReturnDate</time>
+                    <button class="btn btn-secondary js-request" style="float:right" data-content-id="@item.Id">Accept Return Request</button>
+                </td>
+
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h2>Requstes for Rented Movies</h2>
+
+<table id="requestedToRenteMovies" class="table table-bordered table-hover">
+    <thead>
+        <tr>
+            <th>Movie</th>
+            <th>User</th>
+            <th>Customer</th>
+            <th>Request for rent Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Where(m => m.AskedRented == true && m.DateRented == null))
+        {
+            <tr>
+                <td>@item.Movie.Name</td>
+                <td>@item.Customer.ApplicationUser.UserName</td>
+                <td>@item.Customer.Name</td>
+
+                <td>
+                    <time class="timeago" datetime="@item.AskedRentedDate" title="@item.AskedRentedDate">@item.AskedRentedDate</time>
+                    <button class="btn btn-secondary js-rent" style="float:right" data-content-id="@item.Id">Accept Rent Request</button>
+                </td>
+
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+@section Scripts{
+
+    <script>
+        $(document).ready(function () {
+            var requestTable = $("#RequestedRentedMovies").DataTable({
+                "lengthMenu": [[10, 15, 20, -1], [10, 15, 20, "All"]]
+            });
+
+            var requestRentTable = $("#requestedToRenteMovies").DataTable({
+                "lengthMenu": [[10, 15, 20, -1], [10, 15, 20, "All"]]
+            });
+
+
+            ///////////////////Request for return Table/////////////////
+            $("#RequestedRentedMovies").on("click", ".js-request", function () {
+                var button = $(this);
+                console.log("non");
+                bootbox.confirm("Are you sure you want to Accept this Return Request?", function (result) {
+                    if (result) {
+                        $.ajax({
+                            url: "../Rentals/AcceptReturnRequest/" + button.attr("data-content-id"),
+                            success: function () {
+
+                                requestTable.row(button.parent("td").parent("tr")).remove().draw();
+                                toastr.success("Successful Accept this Return request");
+                            },
+                            error: function () {
+                                toastr.error("Something unexpecting happened.");
+                            }
+                        });
+                    }
+                });
+            });
+
+            ////////////////////////Request for rent Table///////////////////
+
+            $("#requestedToRenteMovies").on("click", ".js-rent", function () {
+                var button = $(this);
+                console.log("non");
+                bootbox.confirm("Are you sure you want to Accept this Rent Request?", function (result) {
+                    if (result) {
+                        $.ajax({
+                            url: "../Rentals/AcceptRentRequest/" + button.attr("data-content-id"),
+                            success: function () {
+
+                                requestRentTable.row(button.parent("td").parent("tr")).remove().draw();
+                                toastr.success("Successful Accept this Rent request");
+                            },
+                            error: function () {
+                                toastr.error("Something unexpecting happened .");
+                            }
+                        });
+                    }
+                });
+            });
+
+
+            
+
+            jQuery("time.timeago").timeago();
+        });
+    </script>
+}

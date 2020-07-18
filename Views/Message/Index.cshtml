@@ -1,0 +1,26 @@
+﻿
+@{
+    ViewBag.Title = "SendEmail";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>
+    SendEmail
+</h2>
+<br />
+<br /> @if (ViewBag.Error != null)
+{<h2> @ViewBag.Error </h2>
+}
+<form method="post" action="../Message/SendEmail">
+    <div class="container">
+        <span class="form-control-static"> Name: </span>
+        <input class="form-control" type="text" name="name" /> <br />
+        <span class="form-control-static"> Subject: </span>
+        <input class="form-control" type="text" name="subject" /> <br />
+        <span class="form-control-static"> Email: </span>
+        <input class="form-control" type="text" name="email" /> <br />
+        <span class="form-control-static"> Message: </span>
+        <input class="form-control" type="text" name="message" /> <br />
+        <input class="btn btn-primary" type="submit" value="Send" />
+    </div>
+</form>

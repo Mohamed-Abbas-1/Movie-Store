@@ -1,0 +1,81 @@
+﻿@model IEnumerable<MovieStore.Models.ApplicationUser>
+@{
+    ViewBag.Title = "AllUsers";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>AllUsers</h2>
+
+<table id="users" class="table table-bordered table-hover">
+    <thead>
+        <tr>
+            <th>User</th>
+            <th>Phone Number</th>
+            <th>Driving Licence</th>
+            <th>Type</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.UserName</td>
+                <td>@item.Phone</td>
+                <td>@item.DrivingLicence</td>
+                @if (item.Roles.Any())
+                {
+                    <td>
+                        Admin
+                        @Html.ActionLink("Set As User", "SetUser", new { id = item.Id }, new { @class = "btn btn-primary", @style = "float:right" })
+                    </td>
+
+                }
+                else
+                {
+                    <td>
+                        User
+                        @Html.ActionLink("Set As Admin", "SetAdmin", new { id = item.Id }, new { @class = "btn btn-success", @style = "float:right" })
+                    </td>
+
+                }
+                <td>
+                    <button class="btn btn-danger js-delete" data-content-id="@item.Id">Delete User</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@section Scripts{
+
+    <script>
+        $(document).ready(function () {
+            var table = $("#users").DataTable({
+                "lengthMenu": [[10, 15, 20, -1], [10, 15, 20, "All"]]
+            });
+
+            $("#users").on("click", ".js-delete", function () {
+                var button = $(this);
+                console.log("non");
+                bootbox.confirm("Are you sure you want to Delete This user?", function (result) {
+                    if (result) {
+                        $.ajax({
+                            url: "../Users/Delete/" + button.attr("data-content-id"),
+                            success: function () {
+
+                                table.row(button.parent("td").parent("tr")).remove().draw();
+                                toastr.success("Successful Delete this user!");
+                            },
+                            error: function () {
+                                toastr.error("Cannot delete this user, one of his customer have one movie or more didn't returned yet! .");
+                            }
+                        });
+                    }
+                });
+            });
+
+        });
+    </script>
+}
+
